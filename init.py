@@ -2,8 +2,8 @@ import plantdesign
 
 
 def init():
-    connectionPool = plantdesign.ConnectionPool('127.0.0.1',"plantdesign",'sa','123456')
-    createTablePlantInfo = """
+    connection_pool = plantdesign.ConnectionPool('127.0.0.1',"plantdesign",'sa','123456')
+    create_table_plant_info = """
         CREATE TABLE PlantInfo (
         plant_id varchar(50) PRIMARY KEY,
         plant_name VARCHAR(255) NOT NULL,
@@ -15,4 +15,4 @@ def init():
         pest_control_measures TEXT,
         application_value TEXT
     );"""
-    connectionPool.exec_sql_with_commit(createTablePlantInfo)
+    connection_pool.exec_sql_with_commit(create_table_plant_info)
