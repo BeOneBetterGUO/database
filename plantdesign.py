@@ -1,13 +1,17 @@
 import pyodbc
 from queue import Queue, Empty
 from threading import Lock
-#数据库名：plantdesign
-#创建连接池
+
+
+# 数据库名：plantdesign
+# 创建连接池
 class ConnectionPool:
-    def __init__(self, server, database, pool_size=5):
+    def __init__(self, server, database, UID, PWD, pool_size=5):
         self.server = server
         self.database = database
         self.pool_size = pool_size
+        self.UID = UID
+        self.PWD = PWD
         self.conn_queue = Queue(maxsize=pool_size)  # 使用 maxsize 限制队列大小
         self.lock = Lock()  # 添加锁以确保线程安全
         self._create_connections()
@@ -19,9 +23,8 @@ class ConnectionPool:
                 self.conn_queue.put(conn)
 
     def _create_new_conn(self):
-        return pyodbc.connect(
-            'DRIVER={SQL Server};SERVER=' + self.server + ';DATABASE=' + self.database + ';Trusted_Connection=yes;'
-        )
+        return pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={self.server};DATABASE={self.database};'
+                              f'UID={self.UID};PWD={self.PWD}')
 
     def _put_conn(self, conn):
         self.conn_queue.put(conn)
@@ -51,7 +54,7 @@ class ConnectionPool:
         finally:
             self._put_conn(conn)
 
-    def exec_sql2(self, sql, values=None):
+    def exec_sql_with_commit(self, sql, values=None):
         conn = self._get_conn()
         try:
             with conn.cursor() as cur:
@@ -81,18 +84,17 @@ class ConnectionPool:
     def return_connection(self, conn):
         self._put_conn(conn)  # 直接调用 _put_conn 方法
 
-#封装PlantInfo基本信息类
+
+# 封装PlantInfo基本信息类
 class PlantInfo:
-    def __init__(self, plant_id, plant_name, alias, scientific_family, scientific_species, morphological_features, cultivation_points, pest_control_measures, application_value):
-        self.plant_id = plant_id                                    #植物编号
-        self.plant_name = plant_name                                #植物名称
-        self.alias = alias                                          #别名
-        self.scientific_family = scientific_family                  #科名
-        self.scientific_species = scientific_species                #种名
-        self.morphological_features = morphological_features        #形态特征
-        self.cultivation_points = cultivation_points                #栽培技术要点
-        self.pest_control_measures = pest_control_measures          #病虫害防治措施
-        self.application_value = application_value                  #应用价值
-
-
-
+    def __init__(self, plant_id, plant_name, alias, scientific_family, scientific_species, morphological_features,
+                 cultivation_points, pest_control_measures, application_value):
+        self.plant_id = plant_id  # 植物编号
+        self.plant_name = plant_name  # 植物名称
+        self.alias = alias  # 别名
+        self.scientific_family = scientific_family  # 科名
+        self.scientific_species = scientific_species  # 种名
+        self.morphological_features = morphological_features  # 形态特征
+        self.cultivation_points = cultivation_points  # 栽培技术要点
+        self.pest_control_measures = pest_control_measures  # 病虫害防治措施
+        self.application_value = application_value  # 应用价值
