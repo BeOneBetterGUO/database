@@ -2,7 +2,6 @@
 使用sql server及ssms
 数据库名字为plantdesign
 使用pyodbc
-test
 
 以下是作者：
 dafu
