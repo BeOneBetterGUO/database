@@ -22,8 +22,10 @@ class ConnectionPool:
                 self.conn_queue.put(conn)
 
     def _create_new_conn(self):
-        return pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={self.server};DATABASE={self.database};'
-                              f'UID={self.UID};PWD={self.PWD}')
+        # return pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={self.server};DATABASE={self.database};'
+        #                       f'UID={self.UID};PWD={self.PWD}')
+        connectionString = f'DRIVER={{SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.UID};PWD={self.PWD}'
+        return pyodbc.connect(connectionString)
 
     def _put_conn(self, conn):
         self.conn_queue.put(conn)
@@ -97,3 +99,7 @@ class PlantInfo:
         self.cultivation_points = cultivation_points  # 栽培技术要点
         self.pest_control_measures = pest_control_measures  # 病虫害防治措施
         self.application_value = application_value  # 应用价值
+
+
+
+
