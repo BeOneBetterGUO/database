@@ -2,7 +2,6 @@ import pyodbc
 from queue import Queue, Empty
 from threading import Lock
 
-
 # 数据库名：plantdesign
 # 创建连接池
 class ConnectionPool:
