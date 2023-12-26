@@ -11,4 +11,4 @@ class PlantConservation:
         self.conservation_description = conservation_description    #任务描述
         self.conservation_object = conservation_object  #养护对象
 
-connection_pool = plantdesign.ConnectionPool('127.0.0.1',"plantdesign",'sa','123456')
+if __name__ == "__main__":

@@ -22,14 +22,14 @@ CREATE TABLE PlantInfo (
         application_value TEXT
     );
 
-CREATE TABLE PlantConservation (
-        conservation_id VARCHAR(50) PRIMARY KEY,
-        conservation_name VARCHAR(255) NOT NULL,
-        conservation_time date,
-        conservation_location VARCHAR(255),
-        conservation_stuff VARCHAR(255),
-        conservation_description TEXT,
-        conservation_object VARCHAR(255)
+CREATE TABLE 植物养护 (
+        任务编号 VARCHAR(50) PRIMARY KEY,
+        任务名称 VARCHAR(255) NOT NULL,
+        执行时间 date,
+        执行地点 VARCHAR(255),
+        执行人员 VARCHAR(255),
+        任务描述 TEXT,
+        养护对象 VARCHAR(255)
         );
 
 CREATE TABLE 用户(
