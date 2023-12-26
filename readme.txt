@@ -22,7 +22,7 @@ CREATE TABLE PlantInfo (
         application_value TEXT
     );
 
-CREATE TABLE 植物养护 (
+CREATE TABLE 养护 (
         任务编号 VARCHAR(50) PRIMARY KEY,
         任务名称 VARCHAR(255) NOT NULL,
         执行时间 date,
