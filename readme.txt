@@ -31,3 +31,9 @@ CREATE TABLE PlantConservation (
         conservation_description TEXT,
         conservation_object VARCHAR(255)
         );
+
+CREATE TABLE 用户(
+        账号 VARCHAR(255) PriMARY KEY,
+        密码 VARCHAR(255) NOT NULL,
+        类型 VARCHAR(255) NOT NULL
+);
