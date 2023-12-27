@@ -4,6 +4,7 @@ from queue import Queue, Empty
 
 from plantCategory import CategoryService
 from plantConservation import ConservationService
+import PlantInfo
 
 server = "localhost"
 database = "plantdesign"
@@ -11,10 +12,12 @@ database = "plantdesign"
 # 创建工厂
 factory = plantdesign.Factory(server, database)
 category_dao = factory.create_category_dao()
+plant_dao = factory.create_plant_dao()
 conservation_dao = factory.create_conservation_dao()
 
 # 创建用户管理器
 user_manager = plantdesign.UserManager(factory.connection_pool)
+plant_manager = PlantInfo.PlantManager(plant_dao)
 category_manager = CategoryService(category_dao)
 conservation_manager = ConservationService(conservation_dao)
 # 用户登录

@@ -3,6 +3,7 @@ import pyodbc as pyodbc
 from plantPest import PestManager
 import plantPest
 import plantdesign
+import PlantInfo
 from plantCategory import CategoryService
 from plantCategory import CategoryDao
 
@@ -135,7 +136,7 @@ class UserDAO:
             choice = input("请选择：")
             if choice == '1':
                 print("\n您正在进行基本信息管理，您可以进行以下操作：")
-
+                plant_manager.manage()
             elif choice == '2':
                 print("\n您正在进行分类管理，您可以进行以下操作：")
                 category_manager.manageMenu()
@@ -263,8 +264,8 @@ class UserDAO:
 
 
 class Factory:
-    def __init__(self):
-        pass
+    def __init__(self, connection_pool):
+        self.connection_pool = connection_pool
 
     def create_pest_dao(self):
         return plantPest.PestDiseaseDAO
@@ -275,26 +276,29 @@ class Factory:
     def create_pest_pesticide_dao(self):
         return plantPest.PestDiseasePesticideDAO
 
-    def create_creategory_dao(self):
+    def create_category_dao(self):
         return CategoryDao(self.connection_pool)
 
     def create_conservation_dao(self):
         return PlantConservationDAO(self.connection_pool)
 
+    def create_plant_dao(self):
+        return PlantInfo.PlantDAO(self.connection_pool)
+
 
 
 if __name__ == "__main__":
-    factory = Factory()
-
     server = "localhost"
     database = "plantdesign"
+    connection_pool = plantdesign.ConnectionPool(server,database)
+    factory = Factory(connection_pool)
 
     pest_dao = factory.create_pest_dao()
     pesticide_dao = factory.create_pesticide_dao()
     pest_pesticide_dao = factory.create_pest_pesticide_dao()
-    # plant_design
-    factory = plantdesign.Factory(server, database)
     category_dao = factory.create_category_dao()
+    # plant_design
+    plant_dao = factory.create_plant_dao()
     conservation_dao = factory.create_conservation_dao()
 
 
@@ -305,6 +309,7 @@ if __name__ == "__main__":
     pest_manage = plantPest.PestManager(pest_dao, pesticide_dao, pest_pesticide_dao)
 
     plant_con = ConservationService(conservation_dao)
+    plant_manager = PlantInfo.PlantManager(plant_dao)
 
     monitor = plantMonitor.Monitoring("","","","","")
 
