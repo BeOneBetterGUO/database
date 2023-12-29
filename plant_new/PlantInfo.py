@@ -7,7 +7,8 @@ from plantCategory import Category
 
 # 封装PlantInfo基本信息类
 class PlantInfo:
-    def __init__(self,plant_id, plant_name, scientific_name, cultivation_points, application_value, morphological_features):
+    def __init__(self, plant_id, plant_name, scientific_name, cultivation_points, application_value,
+                 morphological_features):
         self.plant_id = plant_id
         self.plant_name = plant_name
         self.scientific_name = scientific_name
@@ -23,6 +24,7 @@ class PlantInfo:
         print(f"应用价值: {self.application_value}")
         print(f"形态特征: {self.morphological_features}")
         print("\n")
+
 
 class PlantDAO:
     # ... 其他方法 ...
@@ -46,11 +48,11 @@ class PlantDAO:
                 PlantInfo(plant_data[0], plant_data[1], plant_data[2], plant_data[3], plant_data[4], plant_data[5]))
         return plants
 
-    def add_plant(self, plant):#增加
+    def add_plant(self, plant):  # 增加
         sql = f"INSERT INTO 植物基本信息 VALUES ('{plant.plant_id}', '{plant.plant_name}', '{plant.scientific_name}', '{plant.cultivation_points}', '{plant.application_value}', '{plant.morphological_features}')"
         self.connection_pool.exec_sql(sql)
 
-    def delete_plant(self, plant_id):#删除
+    def delete_plant(self, plant_id):  # 删除
         sql = f"DELETE FROM 植物基本信息 WHERE 植物编号 = '{plant_id}'"
         self.connection_pool.exec_sql(sql)
 
@@ -83,17 +85,18 @@ class PlantDAO:
         result = self.connection_pool.exec_sql(sql)
         plants = []
         for plant_data in result:
-            plants.append(PlantInfo(plant_data[0], plant_data[1], plant_data[2], plant_data[3], plant_data[4], plant_data[5]))
+            plants.append(
+                PlantInfo(plant_data[0], plant_data[1], plant_data[2], plant_data[3], plant_data[4], plant_data[5]))
         return plants
 
-    def count_plants_by_family(self, family_name):#根据科名统计植物数量
+    def count_plants_by_family(self, family_name):  # 根据科名统计植物数量
         sql = f"SELECT COUNT(*) FROM 植物分类信息 WHERE 科名 = '{family_name}'"
         result = self.connection_pool.exec_sql(sql)
         if result:
             return result[0][0]
         return 0
 
-    def query_plants2(self, **kwargs):#根据任意属性组合查询所需植物
+    def query_plants2(self, **kwargs):  # 根据任意属性组合查询所需植物
         conditions = []
         params = []
 
@@ -111,12 +114,13 @@ class PlantDAO:
                 conditions.append(f"植物分类信息.{key} LIKE ?")
                 params.append(f"%{value}%")
 
-            #params.append(f"%{value}%")  # 使用 % 进行模糊匹配
-            #params.append(value)
+            # params.append(f"%{value}%")  # 使用 % 进行模糊匹配
+            # params.append(value)
 
-        join_clause = "INNER JOIN 植物分类信息 ON 植物基本信息.植物编号 = 植物分类信息.植物编号"
+        #join_clause = "INNER JOIN 植物分类信息 ON 植物基本信息.植物编号 = 植物分类信息.植物编号"
         where_clause = "WHERE " + " AND ".join(conditions) if conditions else ""
-        sql = f"SELECT 植物基本信息.* FROM 植物基本信息 {join_clause} {where_clause}"
+        # sql = f"SELECT 植物基本信息.* FROM 植物基本信息 {join_clause} {where_clause}"
+        sql = f"SELECT 植物基本信息.* FROM 植物基本信息 {where_clause}"
 
         result = self.connection_pool.exec_sql_with_params(sql, params)
         print(len(result))
@@ -128,13 +132,13 @@ class PlantDAO:
 
         return plants
 
-    #根据植物名称查看监测人员信息
+    # 根据植物名称查看监测人员信息
     def get_monitoring_personnel_by_plant_name(self, plant_name):
         sql = """
-            SELECT DISTINCT MP.人员名称,MP.人员工号
+            SELECT DISTINCT MP.姓名,MP.工号
             FROM 植物基本信息 P
             JOIN 监测数据 MD ON P.植物编号 = MD.植物编号
-            JOIN 监测人员 MP ON MD.创建人员 = MP.人员名称
+            JOIN 监测人员 MP ON MD.创建人员 = MP.姓名
             WHERE P.植物名称 = ?
         """
 
@@ -143,6 +147,8 @@ class PlantDAO:
 
         monitoring_personnel = [row for row in result]
         return monitoring_personnel
+
+
 # 管理功能部分
 class PlantManager:
     def __init__(self, plant_dao):
@@ -185,7 +191,7 @@ class PlantManager:
 
             elif choice == "2":
                 # 删除植物
-                plant_id_to_delete = int(input("请输入要删除的植物编号: "))
+                plant_id_to_delete = input("请输入要删除的植物编号: ")
                 self.plant_dao.delete_plant(plant_id_to_delete)
                 print("植物删除成功。")
 
@@ -226,7 +232,8 @@ class PlantManager:
                     query_attribute1, query_attribute2 = query_attributes
                     query_value1 = input(f"请输入{query_attribute1}的值: ")
                     query_value2 = input(f"请输入{query_attribute2}的值: ")
-                    plants = self.plant_dao.query_plants2(**{query_attribute1: query_value1, query_attribute2: query_value2})
+                    plants = self.plant_dao.query_plants2(
+                        **{query_attribute1: query_value1, query_attribute2: query_value2})
                 elif len(query_attributes) == 1:
                     query_attribute = query_attributes[0]
                     query_value = input(f"请输入{query_attribute}的值: ")
@@ -260,12 +267,11 @@ class PlantManager:
             elif choice == "7":
                 plantslist = self.plant_dao.getallplant()
                 if plantslist:
-                        for i in plantslist:
-                            i.display_info()
+                    for i in plantslist:
+                        i.display_info()
             elif choice == "8":
                 print("退出程序。")
                 break
 
             else:
                 print("无效的选项，请重新输入。")
-

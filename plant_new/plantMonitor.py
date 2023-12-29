@@ -1,125 +1,56 @@
-import pyodbc
-import plantdesign
-from queue import Queue, Empty
+# def init():
+#     connection_pool = plantdesign.ConnectionPool('127.0.0.1', "plantdesign", 'chosen', '123456')
+#     create_table_plant_info = """
+#         CREATE TABLE PlantInfo (
+#         plant_id varchar(50) PRIMARY KEY,
+#         plant_name VARCHAR(255) NOT NULL,
+#         alias VARCHAR(255),
+#         scientific_family VARCHAR(255),
+#         scientific_species VARCHAR(255),
+#         morphological_features TEXT,
+#         cultivation_points TEXT,
+#         pest_control_measures TEXT,
+#         application_value TEXT
+#     );"""
+#     connection_pool.exec_sql_with_commit(create_table_plant_info)
 
-def init():
-    connection_pool = plantdesign.ConnectionPool('127.0.0.1',"plantdesign",'chosen','123456')
-    create_table_plant_info = """
-        CREATE TABLE PlantInfo (
-        plant_id varchar(50) PRIMARY KEY,
-        plant_name VARCHAR(255) NOT NULL,
-        alias VARCHAR(255),
-        scientific_family VARCHAR(255),
-        scientific_species VARCHAR(255),
-        morphological_features TEXT,
-        cultivation_points TEXT,
-        pest_control_measures TEXT,
-        application_value TEXT
-    );"""
-    connection_pool.exec_sql_with_commit(create_table_plant_info)
 
-class ConnectionPool:
-    def __init__(self, server, database, pool_size=5):
-        self.server = server
-        self.database = database
-        self.pool_size = pool_size
-        self.conn_queue = Queue()
-        self._create_connections()
-
-    def _create_connections(self):
-        for _ in range(self.pool_size):
-            conn = self._create_new_conn()
-            self.conn_queue.put(conn)
-
-    def _create_new_conn(self):
-        return pyodbc.connect(
-            'DRIVER={SQL Server};SERVER=' + self.server + ';DATABASE=' + self.database + ';Trusted_Connection=yes;'
-        )
-
-    def _put_conn(self, conn):
-        self.conn_queue.put(conn)
-
-    def _get_conn(self):
-        conn = self.conn_queue.get()
-        if conn is None:
-            self._create_new_conn()
-        return conn
-
-    def exec_sql(self, sql, values=None):
-        conn = self._get_conn()
-        try:
-            with conn.cursor() as cur:
-                if values:
-                    cur.execute(sql, values)
-                elif "SELECT" in sql.upper():
-                    cur.execute(sql)
-                    return cur.fetchall()
-                else:
-                    cur.execute(sql)
-                    return None  # 对于非 SELECT 查询，返回 None
-        finally:
-            self._put_conn(conn)
-
-    def exec_sql2(self, sql, values=None):
-        conn = self._get_conn()
-        try:
-            with conn.cursor() as cur:
-                if values:
-                    cur.execute(sql, values)
-                else:
-                    cur.execute(sql)
-            conn.commit()  # 提交事务
-        finally:
-            self._put_conn(conn)
-
-    def exec_sql_with_params(self, sql, params):
-        conn = self._get_conn()
-        try:
-            with conn.cursor() as cur:
-                cur.execute(sql, params)
-                if "SELECT" in sql.upper():
-                    return cur.fetchall()
-                else:
-                    return None  # For non-SELECT queries, return None
-        finally:
-            self._put_conn(conn)
-
-    def get_connection(self):
-        try:
-            conn = self.conn_queue.get(timeout=5)
-        except Empty:
-            print("Connection pool is empty")
-            conn = self._create_new_conn()
-        return conn
-
-    def return_connection(self, conn):
-        self.conn_queue.put(conn)
 class MonitoringData:
     def __init__(self, monitoring_id, plant_id, abnormal_condition, creator, creation_time, update_time, light,
                  temperature):
-        self.monitoring_id = monitoring_id             #监测数据编号
-        self.plant_id = plant_id                       #植物编号
-        self.abnormal_condition = abnormal_condition   #异常情况
-        self.creator = creator                         #创建人员
-        self.creation_time = creation_time             #创建时间
-        self.update_time = update_time                 #更新时间
-        self.light = light                             #光照
-        self.temperature = temperature                 #温度
+        self.monitoring_id = monitoring_id  # 监测数据编号
+        self.plant_id = plant_id  # 植物编号
+        self.abnormal_condition = abnormal_condition  # 异常情况
+        self.creator = creator  # 创建人员
+        self.creation_time = creation_time  # 创建时间
+        self.update_time = update_time  # 更新时间
+        self.light = light  # 光照
+        self.temperature = temperature  # 温度
 
 
 # 监测人员
 class MonitoringPersonnel:
     def __init__(self, personnel_id, personnel_name):
-        self.personnel_id = personnel_id               #工号
-        self.personnel_name = personnel_name           #姓名
+        self.personnel_id = personnel_id  # 工号
+        self.personnel_name = personnel_name  # 姓名
+
+
 # 监测
 class Monitoring:
     def __init__(self, check_id, monitoring_id, monitoring_time, monitoring_location, detection_device):
-        self.monitoring_id = monitoring_id             #监测记录编号
-        self.check_id = check_id                       #监测数据编号
-        self.monitoring_time = monitoring_time         #监测时间
-        self.monitoring_location = monitoring_location #监测地点
-        self.detection_device = detection_device       #监测设备
+        self.monitoring_id = monitoring_id  # 监测记录编号
+        self.check_id = check_id  # 监测数据编号
+        self.monitoring_time = monitoring_time  # 监测时间
+        self.monitoring_location = monitoring_location  # 监测地点
+        self.detection_device = detection_device  # 监测设备
+
+
+class MonitoringLogic:
+    def __init__(self, monitoring_dao, monitoring_personnel_dao, monitoring_data_dao):
+        self.monitoring_dao = monitoring_dao
+        self.monitoring_personnel_dao = monitoring_personnel_dao
+        self.monitoring_data_dao = monitoring_data_dao
+
     def showmenu(self):
         while True:
             print("\n请选择操作:")
@@ -137,7 +68,7 @@ class Monitoring:
 
                 if operation_choice == 1:
                     # 显示所有监测数据信息
-                    all_monitoring_data = monitoring_data_dao.display_all_monitoring_data_from_db()
+                    all_monitoring_data = self.monitoring_data_dao.display_all_monitoring_data_from_db()
                     print("所有监测数据信息:")
                     for monitoring_data in all_monitoring_data:
                         print("\n监测数据信息:")
@@ -152,7 +83,7 @@ class Monitoring:
                     pass
                 elif operation_choice == 2:
                     # 执行查看监测表操作
-                    all_monitoring_data = monitoring_dao.display_all_monitoring_data()
+                    all_monitoring_data = self.monitoring_dao.display_all_monitoring_data()
 
                     # 打印显示的监测数据信息
                     for monitoring_data in all_monitoring_data:
@@ -166,7 +97,7 @@ class Monitoring:
                 elif operation_choice == 3:
                     # 执行查看监测人员表操作
                     # 显示所有监测人员信息
-                    all_personnel_data = personnel_data_dao.get_all_personnel_data()
+                    all_personnel_data = self.monitoring_personnel_dao.get_all_personnel_data()
                     print("所有监测人员信息:")
                     for personnel_data in all_personnel_data:
                         print(f"工号: {personnel_data.personnel_id}, 姓名: {personnel_data.personnel_name}")
@@ -194,23 +125,25 @@ class Monitoring:
                         print("7.光照")
                         print("8.温度")
 
-                        # 获取用户选择
-                        search_choice = int(input("请输入查询条件的选择(1-8): "))
+                        while True:
+                            # 获取用户选择
+                            search_choice = int(input("请输入查询条件的选择(1-8): "))
 
-                        # 根据用户选择构建查询条件
-                        attribute_names = ["监测数据编号", "植物编号", "异常情况", "创建人员", "创建时间",
-                                           "更新时间", "光照", "温度"]
-                        if 1 <= search_choice <= len(attribute_names):
-                            attribute_name = attribute_names[search_choice - 1]
-                        else:
-                            print("无效的查询条件选择，请重新选择。")
-                        # 结束或其他处理
+                            # 根据用户选择构建查询条件
+                            attribute_names = ["监测数据编号", "植物编号", "异常情况", "创建人员", "创建时间",
+                                               "更新时间", "光照", "温度"]
+                            if 1 <= search_choice <= len(attribute_names):
+                                attribute_name = attribute_names[search_choice - 1]
+                                break
+                            else:
+                                print("无效的查询条件选择，请重新选择。")
+                            # 结束或其他处理
 
                         # 获取用户输入的查询值
-                        search_value = input(f"请输入要查询的{attribute_name}值: ")
+                        search_value = str(input(f"请输入要查询的{attribute_name}值: "))
 
                         # 执行查询
-                        result = monitoring_data_dao.search_monitoring_data(**{attribute_name: search_value})
+                        result = self.monitoring_data_dao.search_monitoring_data(**{attribute_name: search_value})
 
                         # 显示查询结果
                         print("查询结果:")
@@ -225,8 +158,6 @@ class Monitoring:
                             print(f"温度: {monitoring_data.temperature}")
                             print("-" * 20)  # 用横线分隔每个数据对象的输出
 
-
-
                     elif table_choice == 2:
                         # 查询监测表
                         # 查询条件选择
@@ -236,22 +167,24 @@ class Monitoring:
                         print("3.监测地点")
                         print("4.检测设备")
 
-                        # 获取用户选择
-                        search_choice = int(input("请输入查询条件的选择(1-4): "))
+                        while True:
+                            # 获取用户选择
+                            search_choice = int(input("请输入查询条件的选择(1-4): "))
 
-                        # 根据用户选择构建查询条件
-                        attribute_names = ["监测数据编号", "监测时间", "监测地点", "检测设备"]
-                        if 1 <= search_choice <= len(attribute_names):
-                            attribute_name = attribute_names[search_choice - 1]
-                        else:
-                            print("无效的查询条件选择，请重新选择。")
+                            # 根据用户选择构建查询条件
+                            attribute_names = ["监测数据编号", "监测时间", "监测地点", "检测设备"]
+                            if 1 <= search_choice <= len(attribute_names):
+                                attribute_name = attribute_names[search_choice - 1]
+                                break
+                            else:
+                                print("无效的查询条件选择，请重新选择。")
                             # 结束或其他处理
 
                         # 获取用户输入的查询值
                         search_value = input(f"请输入要查询的{attribute_name}值: ")
 
                         # 执行查询
-                        result = monitoring_dao.search_monitoring(**{attribute_name: search_value})
+                        result = self.monitoring_dao.search_monitoring(**{attribute_name: search_value})
 
                         # 显示查询结果
                         print("查询结果:")
@@ -263,14 +196,13 @@ class Monitoring:
                             print(f"检测设备: {monitoring_info.detection_device}")
                             print("-" * 20)  # 用横线分隔每个数据对象的输出
 
-
                     elif table_choice == 3:
                         # 查询监测人员表
                         # 查询监测人员表
                         print("请输入监测人员工号进行查询:")
                         personnel_id = input("监测人员工号: ")
 
-                        result_by_id = personnel_data_dao.get_personnel_data_by_id(personnel_id)
+                        result_by_id = self.monitoring_personnel_dao.get_personnel_data_by_id(personnel_id)
 
                         if result_by_id:
                             print(f"通过工号 {personnel_id} 查询到的监测人员信息:")
@@ -292,11 +224,11 @@ class Monitoring:
 
                     # 根据用户选择执行统计操作
                     if aggregated_choice == 1:
-                        temperature_values = monitoring_data_dao.get_temperature_aggregated_values()
+                        temperature_values = self.monitoring_data_dao.get_temperature_aggregated_values()
                         print("温度聚合值（最大值/平均值）:")
                         print(temperature_values)
                     elif aggregated_choice == 2:
-                        light_values = monitoring_data_dao.get_light_aggregated_values()
+                        light_values = self.monitoring_data_dao.get_light_aggregated_values()
                         print("光照聚合值（最大值/平均值）:")
                         print(light_values)
                     else:
@@ -338,7 +270,7 @@ class Monitoring:
                         )
 
                         # 插入到数据库
-                        monitoring_data_dao.add_monitoring_data(new_monitoring_data)
+                        self.monitoring_data_dao.add_monitoring_data(new_monitoring_data)
                         print("监测数据已成功添加。")
 
                         pass
@@ -348,7 +280,7 @@ class Monitoring:
                         monitoring_id_to_update = int(input("请输入要更新的监测数据编号: "))
 
                         # 查询数据库获取当前监测数据的信息
-                        monitoring_data_to_update = monitoring_data_dao.get_monitoring_data_by_id(
+                        monitoring_data_to_update = self.monitoring_data_dao.get_monitoring_data_by_id(
                             monitoring_id_to_update)
 
                         # 如果监测数据存在，允许用户选择要更新的属性
@@ -377,7 +309,7 @@ class Monitoring:
                                 # 结束或其他处理
 
                             # 调用 update_monitoring_data 方法进行更新
-                            monitoring_data_dao.update_monitoring_data(monitoring_data_to_update)
+                            self.monitoring_data_dao.update_monitoring_data(monitoring_data_to_update)
                             print("监测数据已成功更新。")
                         else:
                             print(f"监测数据编号 {monitoring_id_to_update} 不存在。")
@@ -385,11 +317,11 @@ class Monitoring:
                         pass
                     elif management_choice == 3:
                         monitoring_id_to_update = int(input("请输入要删除的监测数据编号: "))
-                        monitoring_data_to_update = monitoring_data_dao.get_monitoring_data_by_id(
+                        monitoring_data_to_update = self.monitoring_data_dao.get_monitoring_data_by_id(
                             monitoring_id_to_update)
 
                         if monitoring_data_to_update:
-                            monitoring_data_dao.delete_monitoring_data(monitoring_id_to_update)
+                            self.monitoring_data_dao.delete_monitoring_data(monitoring_id_to_update)
                             print("监测数据已删除更新。")
                         else:
                             print(f"监测数据编号 {monitoring_id_to_update} 不存在。")
@@ -427,7 +359,7 @@ class Monitoring:
                         )
 
                         # 插入到监测表
-                        monitoring_dao.add_monitoring(new_monitoring_data)
+                        self.monitoring_dao.add_monitoring(new_monitoring_data)
                         print("监测数据已成功添加到监测表。")
 
                     if management_choice == 2:
@@ -435,7 +367,7 @@ class Monitoring:
                         monitoring_id_to_update = int(input("请输入要更新的监测数据编号: "))
 
                         # 查询数据库获取当前监测数据的信息
-                        monitoring_data_to_update = monitoring_dao.get_monitoring_by_id(monitoring_id_to_update)
+                        monitoring_data_to_update = self.monitoring_dao.get_monitoring_by_id(monitoring_id_to_update)
 
                         # 如果监测数据存在，允许用户选择要更新的属性
                         if monitoring_data_to_update:
@@ -459,16 +391,16 @@ class Monitoring:
                                 # 结束或其他处理
 
                                 # 调用 update_monitoring 方法进行更新
-                            monitoring_dao.update_monitoring(monitoring_data_to_update)
+                            self.monitoring_dao.update_monitoring(monitoring_data_to_update)
                             print("监测数据已成功更新。")
                         else:
                             print(f"监测数据编号 {monitoring_id_to_update} 不存在.")
                     if management_choice == 3:
                         monitoring_id_to_update = int(input("请输入要删除的监测数据编号: "))
-                        monitoring_data_to_update = monitoring_dao.get_monitoring_by_id(monitoring_id_to_update)
+                        monitoring_data_to_update = self.monitoring_dao.get_monitoring_by_id(monitoring_id_to_update)
 
                         if monitoring_data_to_update:
-                            monitoring_dao.delete_monitoring(monitoring_id_to_update)
+                            self.monitoring_dao.delete_monitoring(monitoring_id_to_update)
                             print("监测信息已删除更新。")
                         else:
                             print(f"监测数据编号 {monitoring_id_to_update} 不存在。")
@@ -476,8 +408,6 @@ class Monitoring:
                         pass
                     else:
                         print("无效的管理方式选择，请重新选择。")
-
-
 
                 elif operation_choice == 8:
                     print("退出系统管理员操作。")
@@ -487,6 +417,8 @@ class Monitoring:
 
             except ValueError:
                 print("请输入有效的数字。")
+
+
 class MonitoringDataDao:
     def __init__(self, connection_pool):
         self.connection_pool = connection_pool
@@ -499,19 +431,16 @@ class MonitoringDataDao:
         if isinstance(result, list) and result:
             # 假设列表中只有一条数据
             row = result[0]
-
-            if row:
-                monitoring_data = MonitoringData(
-                    monitoring_id=row[0],
-                    plant_id=row[1],
-                    abnormal_condition=row[2],
-                    creator=row[3],
-                    creation_time=row[4],
-                    update_time=row[5],
-                    light=row[6],
-                    temperature=row[7],
-                    humidity=row[8]
-                )
+            monitoring_data = MonitoringData(
+                monitoring_id=row[0],
+                plant_id=row[1],
+                abnormal_condition=row[2],
+                creator=row[3],
+                creation_time=row[4],
+                update_time=row[5],
+                light=row[6],
+                temperature=row[7],
+            )
             return monitoring_data
         else:
             return None
@@ -538,7 +467,10 @@ class MonitoringDataDao:
 
     # 插入
     def add_monitoring_data(self, monitoring_data):
-        query = f"INSERT INTO 监测数据 (植物编号, 异常情况, 创建人员, 创建时间, 更新时间, 光照, 温度) VALUES ( '{monitoring_data.plant_id}', '{monitoring_data.abnormal_condition}', '{monitoring_data.creator}', '{monitoring_data.creation_time}', '{monitoring_data.update_time}', '{monitoring_data.light}', '{monitoring_data.temperature}')"
+        query = (f"INSERT INTO 监测数据 (植物编号, 异常情况, 创建人员, 创建时间, 更新时间, 光照, 温度) VALUES "
+                 f"('{monitoring_data.plant_id}', '{monitoring_data.abnormal_condition}', '{monitoring_data.creator}', "
+                 f"'{monitoring_data.creation_time}', '{monitoring_data.update_time}', '{monitoring_data.light}', "
+                 f"'{monitoring_data.temperature}')")
         self.connection_pool.exec_sql2(query)
 
     # 删除
@@ -579,16 +511,17 @@ class MonitoringDataDao:
 
         for attribute, keyword in search_criteria.items():
             if keyword:
-                query += f" {attribute} LIKE '%{keyword}%' AND"
+                query += f" {attribute} LIKE '%{keyword}%'"
+                # query += f" {attribute} LIKE '%{keyword}%' AND"
 
         # 移除最后一个 AND
-        query = query.rstrip(' AND')
+        # query = query.rstrip(' AND')
 
         result = self.connection_pool.exec_sql(query)
 
         monitoring_data_list = []
         for row in result:
-            monitoring_data = MonitoringData(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], row[8])
+            monitoring_data = MonitoringData(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
             monitoring_data_list.append(monitoring_data)
 
         return monitoring_data_list
@@ -599,13 +532,12 @@ class MonitoringDataDao:
         # 处理查询结果...
         return result  # 返回的是一个包含温度聚合值的结果集
 
-
-
     def get_light_aggregated_values(self):
         query = "SELECT MAX(光照) AS 最大光照, AVG(光照) AS 平均光照 FROM 监测数据"
         result = self.connection_pool.exec_sql(query)
         # 处理查询结果...
         return result  # 返回的是一个包含光照聚合值的结果集
+
 
 class MonitoringPersonnelDao:
     def __init__(self, connection_pool):
@@ -613,7 +545,8 @@ class MonitoringPersonnelDao:
 
     # 插入
     def add_personnel_data(self, personnel_data):
-        query = f"INSERT INTO 监测人员 (工号, 名称) VALUES ('{personnel_data.personnel_id}', '{personnel_data.personnel_name}')"
+        query = (f"INSERT INTO 监测人员 (工号, 名称) VALUES "
+                 f"('{personnel_data.personnel_id}', '{personnel_data.personnel_name}')")
         self.connection_pool.exec_sql2(query)
 
     # 显示信息
@@ -645,6 +578,7 @@ class MonitoringPersonnelDao:
         query = f"DELETE FROM 监测人员 WHERE 工号 = '{personnel_id}'"
         self.connection_pool.exec_sql2(query)
 
+
 class MonitoringDao:
     def __init__(self, connection_pool):
         self.connection_pool = connection_pool
@@ -671,7 +605,9 @@ class MonitoringDao:
             return None
 
     def add_monitoring(self, monitoring_data):
-        query = f"INSERT INTO 监测 (监测数据编号, 监测时间, 监测地点, 监测设备) VALUES ('{monitoring_data.monitoring_id}', '{monitoring_data.monitoring_time}', '{monitoring_data.monitoring_location}', '{monitoring_data.detection_device}')"
+        query = (f"INSERT INTO 监测 (监测数据编号, 监测时间, 监测地点, 监测设备) VALUES ('{monitoring_data.monitoring_id}', "
+                 f"'{monitoring_data.monitoring_time}', '{monitoring_data.monitoring_location}', "
+                 f"'{monitoring_data.detection_device}')")
         self.connection_pool.exec_sql2(query)
 
     # 显示信息
@@ -738,10 +674,11 @@ class MonitoringDao:
         query = f"DELETE FROM 监测 WHERE 监测数据编号 = '{monitoring_id}'"
         self.connection_pool.exec_sql2(query)
 
-class Factory:
-    def __init__(self, server, database, pool_size=5):
-        self.connection_pool = ConnectionPool(server, database, pool_size)
 
+class Factory:
+
+    def __init__(self, connection_pool):
+        self.connection_pool = connection_pool
 
     def create_monitoring_data_dao(self):
         return MonitoringDataDao(self.connection_pool)
@@ -751,16 +688,3 @@ class Factory:
 
     def create_monitoring_dao(self):
         return MonitoringDao(self.connection_pool)
-
-if __name__ == "__main__":
-    # 创建DAO工厂对象
-    factory = Factory("localhost", "plantdesign")
-
-    # 获取Dao对象
-    monitoring_data_dao = factory.create_monitoring_data_dao()
-    personnel_data_dao = factory.create_personnel_data_dao()
-    monitoring_dao = factory.create_monitoring_dao()
-
-# 执行监测人员相关操作
-
-

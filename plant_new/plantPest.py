@@ -311,7 +311,7 @@ class PestManager:
 
     def show_pest_pesticide(self):
         print("\n显示所有防治关系")
-        self.pest_disease_pesticide_dao.get_all()
+        self.pest_disease_pesticide_dao.get_all(self)
 
     def manage(self):
         while True:

@@ -187,9 +187,9 @@ class UserDAO:
                     choice2 = input("请选择：")
                     values2 = input("请输入修改后的值:")
                     if choice2 == '1':
-                        self.update_user(number,"账号", values)
+                        self.update_user(number,"账号", values2)
                     elif choice2 == '2':
-                        self.update_user(number, "密码", values)
+                        self.update_user(number, "密码", values2)
                     elif choice2 == '3':
                         if values2 not in ("养护人员", "监护人员"):
                             print("抱歉，您只能对养护人员和监护人员进行操作")
@@ -292,6 +292,7 @@ if __name__ == "__main__":
     database = "plantdesign"
     connection_pool = plantdesign.ConnectionPool(server,database)
     factory = Factory(connection_pool)
+    monitor_factory = plantMonitor.Factory(connection_pool)
 
     pest_dao = factory.create_pest_dao()
     pesticide_dao = factory.create_pesticide_dao()
@@ -300,6 +301,12 @@ if __name__ == "__main__":
     # plant_design
     plant_dao = factory.create_plant_dao()
     conservation_dao = factory.create_conservation_dao()
+
+    monitoring_data_dao = monitor_factory.create_monitoring_data_dao()
+    monitoring_personnel_dao = monitor_factory.create_personnel_data_dao()
+    monitoring_dao = monitor_factory.create_monitoring_dao()
+
+
 
 
     # 创建用户管理器
@@ -311,7 +318,7 @@ if __name__ == "__main__":
     plant_con = ConservationService(conservation_dao)
     plant_manager = PlantInfo.PlantManager(plant_dao)
 
-    monitor = plantMonitor.Monitoring("","","","","")
+    monitor = plantMonitor.MonitoringLogic(monitoring_dao, monitoring_personnel_dao, monitoring_data_dao)
 
     conn_str = f'DRIVER={{SQL Server}};SERVER={server};DATABASE={database}'
     try:

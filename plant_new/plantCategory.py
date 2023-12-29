@@ -34,8 +34,8 @@ class CategoryDao:
         self.connection_pool.exec_sql(query, values)
 
     def delete_category(self, plant_id):
-
-        query = f"delete from 植物分类信息 where 植物编号={plant_id}"
+        query = f"DELETE FROM 植物分类信息 WHERE 植物编号 = '{plant_id}'"
+        print(query)
         self.connection_pool.exec_sql(query)
 
     # 获取所有植物分类信息
@@ -47,13 +47,13 @@ class CategoryDao:
         categories = []
         for row in result:
             category = Category(
-                row[1],  # plant_id
-                row[2],  # family
-                row[3],  # genus
-                row[4],  # species
-                row[5],  # alias
-                row[6],  # distribution
-                row[7]  # growth_environment
+                row[0],  # plant_id
+                row[1],  # family
+                row[2],  # genus
+                row[3],  # species
+                row[4],  # alias
+                row[5],  # distribution
+                row[6]  # growth_environment
             )
             categories.append(category)
         return categories
@@ -63,7 +63,7 @@ class CategoryDao:
 
         query = f"SELECT [植物].[植物编号], [植物].[植物名称], [植物].[学名], [植物].[栽培技术要点], [植物].[应用价值], [植物].[形态特征] " \
                 f"FROM [plantdesign].[dbo].[植物分类信息] AS [分类] " \
-                f"JOIN [plantdesign].[dbo].[植物] AS [植物] ON [分类].[植物编号] = [植物].[植物编号] " \
+                f"JOIN [plantdesign].[dbo].[植物基本信息] AS [植物] ON [分类].[植物编号] = [植物].[植物编号] " \
                 f"WHERE [分类].{property_name}='{property_value}'"
         result = self.connection_pool.exec_sql(query)
 
