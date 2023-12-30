@@ -1,4 +1,3 @@
-import pyodbc
 class PestDisease:
     def __init__(self, pest_id, control_method):
         self.pest_id = pest_id
@@ -11,52 +10,45 @@ class PestDiseaseDAO:
 
     def get_all_pests(self):
         try:
-            cursor = self.conn.cursor()
             query = "SELECT * FROM 病虫害"
-            cursor.execute(query)
-            rows = cursor.fetchall()
+            rows = self.conn.exec_sql(query)
             for row in rows:
-                print(row)
+                print(f"病虫害名称：{row[0]}")
+                print(f"病虫害防治方法：{row[1]}\n")
         except Exception as e:
             print(f"Error fetching pests: {e}")
 
     def get_pests_by_id(self, pest_id):
         try:
-            cursor = self.conn.cursor()
             query = "SELECT * FROM 病虫害 WHERE 病虫害名称 = ?"
-            cursor.execute(query, (pest_id,))
-            rows = cursor.fetchall()
+            rows = self.conn.exec_sql_with_params(query, pest_id)
             for row in rows:
-                print(row)
+                print(f"病虫害名称：{row[0]}")
+                print(f"病虫害防治方法：{row[1]}\n")
         except Exception as e:
             print(f"Error fetching pests by ID: {e}")
 
     def delete_pest_by_id(self, pest_id):
         try:
-            cursor = self.conn.cursor()
             query = "DELETE FROM 病虫害 WHERE 病虫害名称 = ?"
-            cursor.execute(query, (pest_id,))
-            self.conn.commit()  # 提交事务
+            self.conn.exec_sql_with_commit(query, pest_id)
         except Exception as e:
             print(f"Error deleting pest by ID: {e}")
 
     def insert_pest(self, pest):
         try:
-            cursor = self.conn.cursor()
-            query = "INSERT INTO P病虫害 (病虫害名称, 防治方法) VALUES (?, ?)"
+            query = "INSERT INTO 病虫害 (病虫害名称, 防治方法) VALUES (?, ?)"
             values = (pest.pest_id, pest.control_method)
-            cursor.execute(query, values)
-            self.conn.commit()  # 提交事务
+            self.conn.exec_sql_with_params(query, values)
         except Exception as e:
             print(f"Error inserting pest: {e}")
 
     def update_pest(self, pest_id, property_name, property_value):
         try:
-            cursor = self.conn.cursor()
-            query = "UPDATE 病虫害 SET ? = ? WHERE 病虫害名称 = ?"
-            value = (property_name, property_value, pest_id)
-            cursor.execute(query, value)
-            self.conn.commit()  # 提交事务
+            print("yes")
+            query = f"UPDATE 病虫害 SET {property_name} = ? WHERE 病虫害名称 = ?"
+            value = (property_value, pest_id)
+            self.conn.exec_sql_with_commit(query, value)
         except Exception as e:
             print(f"Error updating pest: {e}")
 
@@ -74,51 +66,48 @@ class PesticideDAO:
 
     def get_all_pesticide(self):
         try:
-            cursor = self.conn.cursor()
             query = "SELECT * FROM 药剂"
-            cursor.execute(query)
-            rows = cursor.fetchall()
+            rows = self.conn.exec_sql(query)
             for row in rows:
-                print(row)
+                print(f"药剂名称：{row[0]}")
+                print(f"作用期限：{row[1]}")
+                print(f"药剂范围：{row[2]}\n")
         except Exception as e:
-            print(f"Error updating relation: {e}")
+            print(f"Error getting all pesticide: {e}")
 
     def get_pesticide_by_id(self, pesticide_id):
         try:
-            cursor = self.conn.cursor()
             query = "SELECT * FROM 药剂 WHERE 药剂名称 = ?"
-            cursor.execute(query, pesticide_id)
-            rows = cursor.fetchall()
+            rows = self.conn.exec_sql(query,query)
             for row in rows:
-                print(row)
+                print(f"药剂名称：{row[0]}")
+                print(f"作用期限：{row[1]}")
+                print(f"药剂范围：{row[2]}\n")
         except Exception as e:
-            print(f"Error updating relation: {e}")
+            print(f"Error getting pesticide by id: {e}")
 
     def delete_pesticide_by_id(self, pesticide_id):
         try:
-            cursor = self.conn.cursor()
             query = "DELETE FROM 药剂 WHERE 药剂名称 = ?"
-            cursor.execute(query, pesticide_id)
+            self.conn.exec_sql_with_commit(query, pesticide_id)
         except Exception as e:
-            print(f"Error updating relation: {e}")
+            print(f"Error deleting pesticide by id: {e}")
 
     def insert_pesticide(self, pesticide):
         try:
-            cursor = self.conn.cursor()
-            query = f"INSERT INTO  药剂 (药剂, 药剂用量, 作用期限) VALUES (?, ?, ?)"
+            query = f"INSERT INTO  药剂 (药剂名称, 作用期限, 药剂范围) VALUES (?, ?, ?)"
             values = (pesticide.pesticide_id, pesticide.dosage, pesticide.effective_period)
-            cursor.execute(query, values)
+            self.conn.exec_sql_with_commit(query, values)
         except Exception as e:
-            print(f"Error updating relation: {e}")
+            print(f"Error inserting pesticide: {e}")
 
     def update_pesticide(self, pesticide_id, property_name, property_value):
         try:
-            cursor = self.conn.cursor()
             query = f"UPDATE 药剂 SET {property_name} = ? WHERE 药剂名称 = ?"
-            value = (property_value, pesticide_id)
-            cursor.execute(query, value)
+            values = (property_value, pesticide_id)
+            self.conn.exec_sql_with_commit(query, values)
         except Exception as e:
-            print(f"Error updating relation: {e}")
+            print(f"Error updating pesticide: {e}")
 
 
 class PestDiseasePesticide:
@@ -133,21 +122,18 @@ class PestDiseasePesticideDAO:
 
     def get_all(self):
         try:
-            cursor = self.conn.cursor()
             query = "SELECT * FROM 防治"
-            cursor.execute(query)
-            rows = cursor.fetchall()
+            rows = self.conn.exec_sql(query)
             for row in rows:
-                print(row)
+                print(f"病虫害名称：{row[0]}")
+                print(f"药剂：{row[1]}")
         except Exception as e:
             print(f"Error fetching all relations: {e}")
 
     def get_by_pest_disease_id(self, pest_disease_id):
         try:
-            cursor = self.conn.cursor()
             query = "SELECT * FROM 防治 WHERE 病虫害名称 = ?"
-            cursor.execute(query, (pest_disease_id,))
-            rows = cursor.fetchall()
+            rows = self.conn.exec_sql_with_params(query, pest_disease_id)
             for row in rows:
                 print(row)
         except Exception as e:
@@ -155,59 +141,53 @@ class PestDiseasePesticideDAO:
 
     def get_by_pesticide_id(self, pesticide_id):
         try:
-            cursor = self.conn.cursor()
-            query = "SELECT * FROM 防治 WHERE 药剂名称 = ?"
-            cursor.execute(query, (pesticide_id,))
-            return cursor.fetchall()
+            query = "SELECT * FROM 药剂 WHERE 药剂名称 = ?"
+            rows = self.conn.exec_sql_with_params(query, pesticide_id)
+            for row in rows:
+                print(f"药剂名称：{row[0]}")
+                print(f"作用期限：{row[1]}")
+                print(f"药剂范围：{row[2]}\n")
         except Exception as e:
             print(f"Error fetching relations by PesticideID: {e}")
             return []
 
     def insert_relation(self, pest_id, pesticide_id):
         try:
-            cursor = self.conn.cursor()
             query = "INSERT INTO 防治 (病虫害名称, 药剂名称) VALUES (?, ?)"
             values = (pest_id, pesticide_id)
-            cursor.execute(query, values)
-            self.conn.commit()  # 提交事务
+            self.conn.exec_sql_with_commit(query, values)
         except Exception as e:
             print(f"Error inserting relation: {e}")
 
     def delete_relation_by_pest_id(self, pest_disease_id):
         try:
-            cursor = self.conn.cursor()
             query = "DELETE FROM 防治 WHERE 病虫害名称 = ?"
-            cursor.execute(query, pest_disease_id)
-            self.conn.commit()  # 提交事务
+            self.conn.exec_sql_with_commit(query, pest_disease_id)
         except Exception as e:
             print(f"Error deleting relation: {e}")
 
     def delete_relation_by_pesticide_id(self, pesticide_id):
         try:
-            cursor = self.conn.cursor()
             query = "DELETE FROM 防治 WHERE 药剂名称 = ?"
-            cursor.execute(query, pesticide_id)
-            self.conn.commit()  # 提交事务
+            self.conn.exec_sql_with_commit(query, pesticide_id)
         except Exception as e:
-            print(f"Error deleting relation: {e}")
+            print(f"Error deleting relation by pesticide id: {e}")
 
     def update_pest_id(self, pest_disease_id, new_pest_disease_id):
         try:
-            cursor = self.conn.cursor()
-            query = "UPDATE 防治 SET 病虫害名称 = ? WHERE 药剂名称 = ?"
-            cursor.execute(query, (new_pest_disease_id, pest_disease_id))
-            self.conn.commit()  # 提交事务
+            query = "UPDATE 防治 SET 病虫害名称 = ? WHERE 病虫害名称 = ?"
+            values = (pest_disease_id, new_pest_disease_id)
+            self.conn.exec_sql_with_commit(query, values)
         except Exception as e:
-            print(f"Error updating relation: {e}")
+            print(f"Error updating pest id: {e}")
 
     def update_pesticide_id(self, pesticide_id, new_pesticide_id):
         try:
-            cursor = self.conn.cursor()
-            query = "UPDATE 防治 SET 病虫害名称 = ? WHERE 病虫害名称 = ?"
-            cursor.execute(query, (new_pesticide_id, pesticide_id))
-            self.conn.commit()  # 提交事务
+            query = "UPDATE 防治 SET 药剂名称 = ? WHERE 药剂名称 = ?"
+            values = (pesticide_id, new_pesticide_id)
+            self.conn.exec_sql_with_commit(query, values)
         except Exception as e:
-            print(f"Error updating relation: {e}")
+            print(f"Error updating pesticide id: {e}")
 
 
 class PestManager:
@@ -221,14 +201,15 @@ class PestManager:
         pest_id = input("请输入病虫害名称：")
         control_method = input("请输入防治方法")
         new_pest = PestDisease(pest_id, control_method)
+        # print(new_pest.pest_id, new_pest.control_method)
         self.pest_disease_dao.insert_pest(new_pest)
         print("添加成功")
 
     def add_pesticide(self):
         print("\n 添加药剂信息")
         pesticide_id = input("请输入药剂名称：")
-        dosage = input("请输入药剂用量")
-        effective = input("请输入作用期限")
+        dosage = input("请输入作用期限")
+        effective = input("请输入药剂范围")
         new_pesticide = Pesticide(pesticide_id, dosage, effective)
         self.pesticide_dao.insert_pesticide(new_pesticide)
         print("添加成功")
@@ -259,13 +240,12 @@ class PestManager:
         pest_id = input("请输入病虫害名称：")
         print("1.修改名称\n2.修改防治方法")
         choice = input("请输入选择：")
-        property_name = 'PestDiseaseID'
+        property_name = '病虫害名称'
         value = input("请输入修改后的值：")
         if choice == "1":
             self.pest_disease_pesticide_dao.update_pest_id(pest_id, value)
         elif choice == "2":
-            property_name = 'ControlMethod'
-            self.pest_disease_dao.update_pest(pest_id, property_name, value)
+            property_name = '防治方法'
         else:
             print("输入错误")
         self.pest_disease_dao.update_pest(pest_id, property_name, value)
@@ -274,16 +254,16 @@ class PestManager:
     def update_pesticide(self):
         print("\n修改药剂信息")
         pesticide_id = input("请输入药剂名称：")
-        print("1.修改名称\n2.修改作用期限\n3.修改用量")
+        print("1.修改名称\n2.修改作用期限\n3.修改药剂范围")
         choice = input("请输入选择：")
-        property_name = 'PesticideID'
+        property_name = '药剂名称'
         value = input("请输入修改后的值：")
         if choice == '1':
             self.pest_disease_pesticide_dao.update_pesticide_id(pesticide_id, value)
         elif choice == '2':
-            property_name = 'EffectivePeriod'
+            property_name = '作用期限'
         elif choice == '3':
-            property_name = 'Dosage'
+            property_name = '药剂范围'
         else:
             print("输入错误")
         self.pesticide_dao.update_pesticide(pesticide_id, property_name, value)
@@ -311,7 +291,7 @@ class PestManager:
         print("\n显示所有防治关系")
         self.pest_disease_pesticide_dao.get_all()
 
-    def manage(self):
+    def manage_menu(self):
         while True:
             print("\n植物防治管理")
             print("1. 植物病虫害管理")
@@ -336,7 +316,7 @@ class PestManager:
     def pest_run(self):
         while True:
             print("病虫害管理")
-            print("\n1.添加病虫害\n2.修改病虫害\n3.删除病虫害\n4.查询病虫害信息\n5.返回上级菜单\n6. 退出")
+            print("\n1.添加病虫害\n2.修改病虫害\n3.删除病虫害\n4.查询病虫害信息\n5.返回上级菜单")
             choice = input("请输入选择：")
             if choice == '1':
                 self.add_pest()
@@ -352,15 +332,13 @@ class PestManager:
                     self.search_all_pest()
             elif choice == '5':
                 break
-            elif choice == '6':
-                return
             else:
                 print("输入有误，请重新输入！")
 
     def pesticide_run(self):
         while True:
             print("药剂管理")
-            print("\n1.添加药剂\n2.修改药剂\n3.删除药剂\n4.查询药剂信息\n5.返回上级菜单\n6. 退出")
+            print("\n1.添加药剂\n2.修改药剂\n3.删除药剂\n4.查询药剂信息\n5.返回上级菜单")
             choice = input("请输入选择：")
             if choice == '1':
                 self.add_pesticide()
@@ -376,29 +354,5 @@ class PestManager:
                     self.search_all_pesticide()
             elif choice == '5':
                 break
-            elif choice == '6':
-                return
             else:
                 print("输入有误，请重新输入！")
-
-
-if __name__ == "__main__":
-    server = 'localhost'
-    database = 'plantdesign'
-    conn_str = f'DRIVER={{SQL Server}};SERVER={server};DATABASE={database}'
-    try:
-        conn = pyodbc.connect(conn_str)
-        print('数据库连接成功')
-    except Exception as e:
-        print("数据库连接失败", e)
-
-    pest_disease_dao = PestDiseaseDAO(conn)
-    pesticide_dao = PesticideDAO(conn)
-    pest_disease_pesticide_dao = PestDiseasePesticideDAO(conn)
-
-    # 实例化Manager
-    pest_manager = PestManager(pest_disease_dao, pesticide_dao, pest_disease_pesticide_dao)
-
-    # 运行程序
-    pest_manager.manage()
-    conn.close()

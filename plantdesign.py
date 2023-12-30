@@ -2,15 +2,19 @@ import pyodbc
 from queue import Queue, Empty
 from threading import Lock
 
+from plantCategory import CategoryDao
+from plantConservation import PlantConservationDAO
+import plantPest, PlantInfo
+from plantMonitor import MonitoringDataDao, MonitoringPersonnelDao, MonitoringDao
+
+
 # 数据库名：plantdesign
 # 创建连接池
 class ConnectionPool:
-    def __init__(self, server, database, UID, PWD, pool_size=5):
+    def __init__(self, server, database, pool_size=5):
         self.server = server
         self.database = database
         self.pool_size = pool_size
-        self.UID = UID
-        self.PWD = PWD
         self.conn_queue = Queue(maxsize=pool_size)  # 使用 maxsize 限制队列大小
         self.lock = Lock()  # 添加锁以确保线程安全
         self._create_connections()
@@ -22,10 +26,9 @@ class ConnectionPool:
                 self.conn_queue.put(conn)
 
     def _create_new_conn(self):
-        # return pyodbc.connect(f'DRIVER={{SQL Server}};SERVER={self.server};DATABASE={self.database};'
-        #                       f'UID={self.UID};PWD={self.PWD}')
-        connectionString = f'DRIVER={{SQL Server}};SERVER={self.server};DATABASE={self.database};UID={self.UID};PWD={self.PWD}'
-        return pyodbc.connect(connectionString)
+        return pyodbc.connect(
+            'DRIVER={SQL Server};SERVER=' + self.server + ';DATABASE=' + self.database + ';Trusted_Connection=yes;'
+        )
 
     def _put_conn(self, conn):
         self.conn_queue.put(conn)
@@ -79,27 +82,34 @@ class ConnectionPool:
         finally:
             self._put_conn(conn)
 
-    def get_connection(self):
-        return self._get_conn()  # 直接调用 _get_conn 方法
 
-    def return_connection(self, conn):
-        self._put_conn(conn)  # 直接调用 _put_conn 方法
+class Factory:
+    def __init__(self, connection_pool):
+        self.connection_pool = connection_pool
 
+    def create_pest_dao(self):
+        return plantPest.PestDiseaseDAO(self.connection_pool)
 
-# 封装PlantInfo基本信息类
-class PlantInfo:
-    def __init__(self, plant_id, plant_name, alias, scientific_family, scientific_species, morphological_features,
-                 cultivation_points, pest_control_measures, application_value):
-        self.plant_id = plant_id  # 植物编号
-        self.plant_name = plant_name  # 植物名称
-        self.alias = alias  # 别名
-        self.scientific_family = scientific_family  # 科名
-        self.scientific_species = scientific_species  # 种名
-        self.morphological_features = morphological_features  # 形态特征
-        self.cultivation_points = cultivation_points  # 栽培技术要点
-        self.pest_control_measures = pest_control_measures  # 病虫害防治措施
-        self.application_value = application_value  # 应用价值
+    def create_pesticide_dao(self):
+        return plantPest.PesticideDAO(self.connection_pool)
 
+    def create_pest_pesticide_dao(self):
+        return plantPest.PestDiseasePesticideDAO(self.connection_pool)
 
+    def create_category_dao(self):
+        return CategoryDao(self.connection_pool)
 
+    def create_conservation_dao(self):
+        return PlantConservationDAO(self.connection_pool)
 
+    def create_plant_dao(self):
+        return PlantInfo.PlantDAO(self.connection_pool)
+
+    def create_monitoring_data_dao(self):
+        return MonitoringDataDao(self.connection_pool)
+
+    def create_personnel_data_dao(self):
+        return MonitoringPersonnelDao(self.connection_pool)
+
+    def create_monitoring_dao(self):
+        return MonitoringDao(self.connection_pool)
